@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Chatbox</title>
+</head>
+<body>
+
+  <h1>Talk to the Bot</h1>
+
+  <textarea id="userInput" rows="4" cols="50" placeholder="Type your message here..."></textarea>
+  <br>
+  <button onclick="sendMessage()">Send</button>
+  <button onclick="printHello()">Hello</button>
+
+  <br>
+  <h3>Get Your Response</h3>
+  <textarea id="responseArea" placeholder="Waiting for user"></textarea>
+
+  <script>
+    const sendMessage = () => {
+      const userText = document.getElementById("userInput").value;
+      console.log("User said:", userText);  // For debugging
+
+      // Here you would send the text to your backend
+      // We'll just simulate a response for now
+      document.getElementById("responseArea").value = "You said: " + userText;
+
+      document.getElementById("userInput").value = "";
+    }
+
+    function printHello(){
+        const userText = document.getElementById("userInput").value;
+
+        document.getElementById("responseArea").value = userText + " Hello"
+    }
+  </script>
+
+</body>
+</html>
