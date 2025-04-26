@@ -114,7 +114,7 @@ class embedding_to_faiss():
     def __init__(self, model_name):
         
         # Use the same embedding model
-        self.embedding_model = HuggingFaceEmbeddings(model_name=model_name)
+        self.embeddings = HuggingFaceEmbeddings(model_name=model_name)
         
         
     def fecth_data_to_vectorstore(self, texts):
@@ -123,7 +123,7 @@ class embedding_to_faiss():
         docs = [Document(page_content=text) for text in texts]
 
         # Build FAISS index
-        self.vectorstore = FAISS.from_documents(docs, self.embedding_model)
+        self.vectorstore = FAISS.from_documents(docs, self.embeddings)
         
     def save_vectorstore(self, path_save):
         # Save locally
@@ -133,9 +133,14 @@ class embedding_to_faiss():
 
 class Law_RAG():
     
-    def __init__(self, model_id, vectorstore):
+    def __init__(self, model_id, vectorstore, path_vectorestore=None, model_name_embedding=None):
         
-        self.vectorstore = vectorstore
+        if vectorstore is not None:        
+            self.vectorstore = vectorstore
+        else:
+            embeddings = HuggingFaceEmbeddings(model_name=model_name_embedding)
+            self.vectorstore = FAISS.load_local(path_vectorestore, embeddings, allow_dangerous_deserialization=True)
+            
         self.retriever = self.vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 4})
         
         self.build_llm(model_id)
@@ -196,10 +201,12 @@ if __name__=="__main__":
         input_embeddings, words_chunk = dataset_embedder.__getitem__(i)
         words_chunks.append(words_chunk)
     
+    path_save_vsFile = path_save_vs+'/faiss_index'
     embed_saver.fecth_data_to_vectorstore(words_chunks)
-    embed_saver.save_vectorstore(path_save_vs+'/faiss_index')
+    embed_saver.save_vectorstore(path_save_vsFile)
     
-    law_RAG = Law_RAG(model_id=llm_name, vectorstore=embed_saver.vectorstore)
+    # law_RAG = Law_RAG(model_id=llm_name, vectorstore=embed_saver.vectorstore)
+    law_RAG = Law_RAG(model_id=llm_name, vectorstore=None, path_vectorestore=path_save_vsFile, model_name_embedding=embedding_model_name)
     
     answer = law_RAG.fetch_query(query=query)
     
